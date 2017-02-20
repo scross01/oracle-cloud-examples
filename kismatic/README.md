@@ -3,12 +3,23 @@ Deploying Kubernetes on Oracle Compute using Terraform and Kismatic
 
 This Terraform configuration brings up a basic Kubernetes infrastructure on Oracle Compute Cloud using the [Kismatic Enterprise Toolkit](https://github.com/Apprenda/Kismatic).
 
-Based on the [hands-on-with-kubernetes-workshop](https://github.com/swade1987/hands-on-with-kubernetes-workshop) delivered by @swade1987 at the February 2017 [Kubernetes Ottawa Meetup](https://www.meetup.com/Kubernetes-Ottawa/events/236992039/). This example combine the deployment steps into a single Terraform confirguration for the [Oracle Compute Cloud](http://cloud.oracle.com/).
+Based on the [hands-on-with-kubernetes-workshop](https://github.com/swade1987/hands-on-with-kubernetes-workshop) delivered by @swade1987 at the February 2017 [Kubernetes Ottawa Meetup](https://www.meetup.com/Kubernetes-Ottawa/events/236992039/). This example combines the deployment steps into a single Terraform confirguration for the [Oracle Compute Cloud](http://cloud.oracle.com/).
 
 In this example all nodes are deployed on the Oracle Compute Cloud in the shared private subnet, and each node is also assigned a floating public IP address. The Kismatic Enterprise Toolkit is installed to a bootstrap node which in turn sets up Kubernetes infrastructure on the master, etcd and worker nodes using Kismatic.
 
 Setup
 -----
+
+1.	Get an [Oracle Compute Cloud account](https://cloud.oracle.com/tryit)
+2.	Download [Terraform](http://terraform.io) to your local machine
+3.	Install the [Terraform Provider for Oracle Compute Cloud](https://github.com/oracle/terraform-provider-compute)
+
+Now clone this repository
+
+```
+$ git clone https://github.com/scross01/oracle-cloud-examples
+$ cd oracle-cloud-examples/kismatic
+```
 
 Create/update the local `terraform.tfvars` with the required account credentails
 
