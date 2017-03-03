@@ -154,17 +154,9 @@ resource "null_resource" "install-kismatic" {
     user  = "${var.ssh_user}"
     timeout = "5m"
   }
-  provisioner "file" {
-    source = "${var.ssh_public_key}"
-    destination = "./.ssh/id_rsa.pub"
-  }
-  provisioner "file" {
-    source = "${var.ssh_private_key}"
-    destination = "./.ssh/id_rsa"
-  }
   provisioner "remote-exec" {
     inline = [
-      "chmod go-r ~/.ssh/id_rsa",
+      "mkdir ./kismatic && cd ./kismatic",
       "sudo apt update",
       "sudo apt -y install git build-essential",
       "sudo apt -y install -qq python2.7 && sudo ln -f -s /usr/bin/python2.7 /usr/bin/python",
@@ -173,7 +165,26 @@ resource "null_resource" "install-kismatic" {
       "curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl",
       "chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl",
       "tee kismatic-cluster.yaml <<EOF ${data.template_file.kismatic-cluster-yaml.rendered}",
+      "EOF"
+    ]
+  }
+  provisioner "file" {
+    source = "${var.ssh_public_key}"
+    destination = "./kismatic/kismatic_id_rsa.pub"
+  }
+  provisioner "file" {
+    source = "${var.ssh_private_key}"
+    destination = "./kismatic/kismatic_id_rsa"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "chmod go-r ./kismatic/kismatic_id_rsa",
+      "cd ./kismatic",
       "./kismatic install apply -f kismatic-cluster.yaml"
     ]
   }
+}
+
+output "bootstrap_ip" {
+    value = "${opc_compute_ip_reservation.bootstrap_node_ip_reservation.ip}"
 }

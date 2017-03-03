@@ -21,7 +21,7 @@ cluster:
     expiry: 17520h                      # Self-signed certificate expiration period in hours; default is 2 years.
   ssh:
     user: ${var.ssh_user}
-    ssh_key: /home/${var.ssh_user}/.ssh/id_rsa  # Absolute path to the ssh public key we should use to manage nodes.
+    ssh_key: /home/${var.ssh_user}/kismatic/kismatic_id_rsa  # Absolute path to the ssh public key we should use to manage nodes.
     ssh_port: 22
 docker_registry:                        # Here you will provide the details of your Docker registry or setup an internal one to run in the cluster. This is optional and the cluster will always have access to the Docker Hub.
   setup_internal: true                  # When true, a Docker Registry will be installed on top of your cluster and used to host Docker images needed for its installation.

@@ -75,18 +75,20 @@ $ terraform apply
 
 #### Connect to the bootstrap server
 
-The public IP address of bootstrap node can be found in the Oracle Compute Cloud console, or by looking at the applied terraform configuration, e.g.
+The public IP address of bootstrap node is output at the end of the terraform configuraiton, and can also be found by running:
 
 ```
-$ terraform show | grep -A 2 opc_compute_ip_reservation.bootstrap_node_ip_reservation
+$ terraform output bootstrap_ip
 ```
 
 Connect to the bootstramp node using the SSH key that was created.
 
 ```
-$ ssh ubuntu@<bootstrap-node.ip> -i kismatic_id_rsa
+$ ssh ubuntu@<bootstrap_ip> -i kismatic_id_rsa
 [opc@bootstrap_node]
 ```
+
+The kismatic installation and configuration files are located in the `kismatic` directory.
 
 #### Download and run the example app
 
