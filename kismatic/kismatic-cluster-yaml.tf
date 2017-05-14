@@ -1,11 +1,11 @@
 data "template_file" "kismatic-cluster-yaml" {
   vars {
     admin_password = "DeSletankiwom5784"
-    master1ip = "${element(opc_compute_instance.master_nodes.*.ip, 1)}"
-    etcd1ip = "${element(opc_compute_instance.etcd_nodes.*.ip, 1)}"
-    worker1ip = "${element(opc_compute_instance.worker_nodes.*.ip, 1)}"
+    master1ip = "${element(opc_compute_instance.master_nodes.*.ip_address, 1)}"
+    etcd1ip = "${element(opc_compute_instance.etcd_nodes.*.ip_address, 1)}"
+    worker1ip = "${element(opc_compute_instance.worker_nodes.*.ip_address, 1)}"
   }
-  template = <<EOF
+  template = <<YAML
 
 cluster:
   name: kubernetes
@@ -45,5 +45,5 @@ worker:
   nodes:
   - host: worker1
     ip: $${worker1ip}
-EOF
+YAML
 }

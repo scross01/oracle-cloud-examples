@@ -11,8 +11,7 @@ Setup
 -----
 
 1.	Get an [Oracle Compute Cloud account](https://cloud.oracle.com/tryit)
-2.	Download [Terraform](http://terraform.io) to your local machine
-3.	Install the [Terraform Provider for Oracle Compute Cloud](https://github.com/oracle/terraform-provider-compute)
+2.	Download [Terraform](http://terraform.io) to your local machine (release 0.9.4 or later)
 
 Now clone this repository
 

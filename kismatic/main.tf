@@ -1,7 +1,7 @@
 provider "opc" {
   user = "${var.user}"
   password = "${var.password}"
-  identityDomain = "${var.domain}"
+  identity_domain = "${var.domain}"
   endpoint = "${var.endpoint}"
 }
 
@@ -13,92 +13,99 @@ resource "opc_compute_ssh_key" "default" {
 
 # Create the bootstrap node
 resource "opc_compute_instance" "bootstrap_node" {
-  imageList = "${var.image}"
+  image_list = "${var.image}"
   name = "bootstrap-node"
   label= "bootstrap-node"
+  hostname = "bootstrap.compute-${var.domain}.oraclecloud.internal."
   shape = "oc3"
-  sshKeys = [ "${opc_compute_ssh_key.default.id}" ]
+  ssh_keys = [ "${opc_compute_ssh_key.default.id}" ]
+  networking_info {
+    index = 1
+    shared_network = true
+    nat = [ "${opc_compute_ip_reservation.bootstrap_node_ip_reservation.name}" ]
+  }
 }
 
 # Create the Kubernetes Master Nodes (e.g. master1)
 resource "opc_compute_instance" "master_nodes" {
   count = "${var.master_count}"
-  imageList = "${var.image}"
+  image_list = "${var.image}"
   name = "${format("master%1d", count.index + 1)}"
   label = "${format("master%1d", count.index + 1)}"
+  hostname = "${format("master%1d", count.index + 1)}.compute-${var.domain}.oraclecloud.internal."
   shape = "oc3"
-  sshKeys = [ "${opc_compute_ssh_key.default.id}" ]
+  ssh_keys = [ "${opc_compute_ssh_key.default.id}" ]
 }
 
 # Create the Kubernetes Etcd Nodes (e.g. etcd1)
 resource "opc_compute_instance" "etcd_nodes" {
   count  = "${var.etcd_count}"
-  imageList = "${var.image}"
+  image_list = "${var.image}"
   name = "${format("etcd%1d", count.index + 1)}"
   label = "${format("etcd%1d", count.index + 1)}"
+  hostname = "${format("etcd%1d", count.index + 1)}.compute-${var.domain}.oraclecloud.internal."
   shape = "oc3"
-  sshKeys = [ "${opc_compute_ssh_key.default.id}" ]
+  ssh_keys = [ "${opc_compute_ssh_key.default.id}" ]
 }
 
 # Create the Kubernetes worker Nodes (e.g. worker1)
 resource "opc_compute_instance" "worker_nodes" {
   count = "${var.worker_count}"
-  imageList = "${var.image}"
+  image_list = "${var.image}"
   name = "${format("worker%1d", count.index + 1)}"
   label = "${format("worker%1d", count.index + 1)}"
+  hostname = "${format("worker%1d", count.index + 1)}.compute-${var.domain}.oraclecloud.internal."
   shape = "oc3"
-  sshKeys = [ "${opc_compute_ssh_key.default.id}" ]
+  ssh_keys = [ "${opc_compute_ssh_key.default.id}" ]
 }
 
 # Public IP Reservations
 resource "opc_compute_ip_reservation" "bootstrap_node_ip_reservation" {
-  parentpool = "/oracle/public/ippool"
+  name = "kismatic-bootstrap-node"
+  parent_pool = "/oracle/public/ippool"
   permanent = true
-  tags = [ "kismatic-bootstrap-node"]
 }
 
 resource "opc_compute_ip_reservation" "master_node_reservations" {
   count = "${var.master_count}"
-  parentpool = "/oracle/public/ippool"
+  name = "kubenetes-master"
+  parent_pool = "/oracle/public/ippool"
   permanent = true
-  tags = [ "kubenetes-master", "${var.cluster_tag}"]
+  tags = [ "${var.cluster_tag}" ]
 }
 
 resource "opc_compute_ip_reservation" "etcd_node_reservations" {
   count = "${var.etcd_count}"
-  parentpool = "/oracle/public/ippool"
+  name = "kubenetes-etcd"
+  parent_pool = "/oracle/public/ippool"
   permanent = true
-  tags = [ "kubenetes-etcd", "${var.cluster_tag}"]
+  tags = [ "${var.cluster_tag}" ]
 }
 
 resource "opc_compute_ip_reservation" "worker_node_reservations" {
   count = "${var.worker_count}"
-  parentpool = "/oracle/public/ippool"
+  name =  "kubenetes-worker"
+  parent_pool = "/oracle/public/ippool"
   permanent = true
-  tags = [ "kubenetes-worker", "${var.cluster_tag}"]
-}
-
-resource "opc_compute_ip_association" "bootstrap_node_ip_association" {
-  vcable = "${opc_compute_instance.bootstrap_node.vcable}"
-  parentpool = "ipreservation:${opc_compute_ip_reservation.bootstrap_node_ip_reservation.name}"
+  tags = [ "${var.cluster_tag}" ]
 }
 
 resource "opc_compute_ip_association" "master_node_ip_associations" {
   count = "${var.master_count}"
   vcable = "${element(opc_compute_instance.master_nodes.*.vcable, count.index)}"
-  parentpool = "ipreservation:${element(opc_compute_ip_reservation.master_node_reservations.*.name, count.index)}"
+  parent_pool = "ipreservation:${element(opc_compute_ip_reservation.master_node_reservations.*.name, count.index)}"
 }
 
 resource "opc_compute_ip_association" "etcd_node_ip_associations" {
   count = "${var.etcd_count}"
   vcable = "${element(opc_compute_instance.etcd_nodes.*.vcable, count.index)}"
-  parentpool = "ipreservation:${element(opc_compute_ip_reservation.etcd_node_reservations.*.name, count.index)}"
+  parent_pool = "ipreservation:${element(opc_compute_ip_reservation.etcd_node_reservations.*.name, count.index)}"
 }
 
 resource "opc_compute_ip_association" "worker_node_ip_associations" {
   count = "${var.worker_count}"
   vcable = "${element(opc_compute_instance.worker_nodes.*.vcable, count.index)}"
-  parentpool = "ipreservation:${element(opc_compute_ip_reservation.worker_node_reservations.*.name, count.index)}"
+  parent_pool = "ipreservation:${element(opc_compute_ip_reservation.worker_node_reservations.*.name, count.index)}"
 }
 
 # Create security rule to allow nodes within the cluster to access each other via the public IPs
@@ -108,20 +115,19 @@ resource "opc_compute_security_list" "kismatic-cluster" {
   outbound_cidr_policy = "PERMIT"
 }
 
-resource "opc_compute_security_ip_list" "kismatic-cluster" {
+resource "opc_compute_sec_rule" "kismatic-cluster" {
   name = "kismatic-cluster"
-  ip_entries = [
-    "${opc_compute_instance.bootstrap_node.ip}"
-  ]
-}
-
-resource "opc_compute_security_rule" "kismatic-cluster" {
-  name = "kismatic-cluster"
-  source_list = "seciplist:${opc_compute_security_ip_list.kismatic-cluster.name}"
+  # source_list = "seciplist:${opc_compute_security_ip_list.kismatic-cluster.name}"
+  source_list = "seciplist:/oracle/public/public-internet"
   destination_list = "seclist:${opc_compute_security_list.kismatic-cluster.name}"
   action = "permit"
   application = "/oracle/public/all"
   disabled = false
+}
+
+resource "opc_compute_security_association" "bootstrap_node_sec_associations" {
+  vcable = "${opc_compute_instance.bootstrap_node.vcable}"
+  seclist = "${opc_compute_security_list.kismatic-cluster.name}"
 }
 
 resource "opc_compute_security_association" "master_node_sec_associations" {
@@ -145,7 +151,8 @@ resource "opc_compute_security_association" "worker_node_sec_associations" {
 #
 resource "null_resource" "install-kismatic" {
   triggers {
-    compute_instance = "${opc_compute_instance.bootstrap_node.id}"
+    # make resource dependent on all nodes being available
+    instances = "${opc_compute_instance.bootstrap_node.id},${join(",", opc_compute_instance.master_nodes.*.id)},${join(",", opc_compute_instance.etcd_nodes.*.id)},${join(",", opc_compute_instance.worker_nodes.*.id)}"
   }
   connection {
     type = "ssh"
@@ -180,7 +187,7 @@ resource "null_resource" "install-kismatic" {
     inline = [
       "chmod go-r ./kismatic/kismatic_id_rsa",
       "cd ./kismatic",
-      "./kismatic install apply -f kismatic-cluster.yaml"
+      "./kismatic install apply -f kismatic-cluster.yaml --verbose"
     ]
   }
 }
