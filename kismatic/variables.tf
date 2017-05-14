@@ -6,7 +6,7 @@ variable endpoint {}
 
 variable kismatic_version {
   description = "Kismatic version"
-  default = "1.2.1"
+  default = "1.3.2"
 }
 
 variable image {
