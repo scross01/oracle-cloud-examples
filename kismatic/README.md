@@ -5,7 +5,7 @@ This Terraform configuration brings up a basic Kubernetes infrastructure on Orac
 
 Based on the [hands-on-with-kubernetes-workshop](https://github.com/swade1987/hands-on-with-kubernetes-workshop) delivered by @swade1987 at the February 2017 [Kubernetes Ottawa Meetup](https://www.meetup.com/Kubernetes-Ottawa/events/236992039/). This example combines the deployment steps into a single Terraform confirguration for the [Oracle Compute Cloud](http://cloud.oracle.com/).
 
-In this example all nodes are deployed on the Oracle Compute Cloud in the shared private subnet, and each node is also assigned a floating public IP address. The Kismatic Enterprise Toolkit is installed to a bootstrap node which in turn sets up Kubernetes infrastructure on the master, etcd and worker nodes using Kismatic.
+In this example all nodes are deployed on the Oracle Compute Cloud on the shared network, and each node is also assigned a floating public IP address. The Kismatic Enterprise Toolkit is installed to a bootstrap node which in turn sets up Kubernetes infrastructure on the master, etcd and worker nodes using Kismatic.
 
 Setup
 -----
